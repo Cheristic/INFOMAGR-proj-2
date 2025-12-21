@@ -7,11 +7,8 @@
   },
   "ExpandedNodes": [
     "",
-    "\\src",
-    "\\src\\InOneWeekend",
-    "\\src\\TheNextWeek",
-    "\\src\\TheRestOfYourLife"
+    "\\src"
   ],
-  "SelectedNode": "\\PRINTING.md",
+  "SelectedNode": "\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }
