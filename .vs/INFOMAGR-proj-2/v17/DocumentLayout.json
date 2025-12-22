@@ -3,8 +3,48 @@
   "WorkspaceRootPath": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\texture.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\texture.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\main.cc||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\main.cc||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\sphere.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\sphere.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\color.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\color.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\hittable.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\hittable.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\aabb.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\aabb.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\bvh.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\bvh.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\camera.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\camera.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\hittable_list.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\hittable_list.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\interval.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\interval.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\material.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\material.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,7 +54,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 212,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -26,16 +66,136 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "color.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\color.h",
+              "RelativeDocumentMoniker": "src\\color.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\color.h",
+              "RelativeToolTip": "src\\color.h",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T19:47:31.908Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "texture.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\texture.h",
+              "RelativeDocumentMoniker": "src\\texture.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\texture.h",
+              "RelativeToolTip": "src\\texture.h",
+              "ViewState": "AgIAABAAAAAAAAAAAAAAAEUAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T19:44:14.334Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "interval.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\interval.h",
+              "RelativeDocumentMoniker": "src\\interval.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\interval.h",
+              "RelativeToolTip": "src\\interval.h",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T19:14:05.219Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "aabb.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\aabb.h",
+              "RelativeDocumentMoniker": "src\\aabb.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\aabb.h",
+              "RelativeToolTip": "src\\aabb.h",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAADkAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T19:13:44.655Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "hittable_list.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\hittable_list.h",
+              "RelativeDocumentMoniker": "src\\hittable_list.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\hittable_list.h",
+              "RelativeToolTip": "src\\hittable_list.h",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAADEAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T19:13:26.744Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "material.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\material.h",
+              "RelativeDocumentMoniker": "src\\material.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\material.h",
+              "RelativeToolTip": "src\\material.h",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAADAAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T19:07:35.229Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "sphere.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\sphere.h",
+              "RelativeDocumentMoniker": "src\\sphere.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\sphere.h",
+              "RelativeToolTip": "src\\sphere.h",
+              "ViewState": "AgIAABkAAAAAAAAAAAAUwD4AAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T18:53:09.673Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "hittable.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\hittable.h",
+              "RelativeDocumentMoniker": "src\\hittable.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\hittable.h",
+              "RelativeToolTip": "src\\hittable.h",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAUwIkAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T18:51:01.458Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "camera.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\camera.h",
+              "RelativeDocumentMoniker": "src\\camera.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\camera.h",
+              "RelativeToolTip": "src\\camera.h",
+              "ViewState": "AgIAABEAAAAAAAAAAAAUwCcAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T18:49:29.911Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "bvh.h",
+              "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\bvh.h",
+              "RelativeDocumentMoniker": "src\\bvh.h",
+              "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\bvh.h",
+              "RelativeToolTip": "src\\bvh.h",
+              "ViewState": "AgIAACcAAAAAAAAAAAAAAC4AAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-21T18:42:33.784Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "main.cc",
               "DocumentMoniker": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\main.cc",
               "RelativeDocumentMoniker": "src\\main.cc",
               "ToolTip": "C:\\Users\\ethan\\Documents\\College\\Graduate School\\2025-2026\\Advanced Graphics\\INFOMAGR-proj-2\\src\\main.cc",
               "RelativeToolTip": "src\\main.cc",
-              "ViewState": "AgIAAIABAAAAAAAAAAAAAI4BAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAAABwAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-20T15:38:55.353Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-20T15:38:55.353Z"
             }
           ]
         }
