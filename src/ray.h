@@ -13,6 +13,7 @@
 
 #include "vec3.h"
 
+constexpr float RAY_EPS = 1e-5f;
 
 class ray {
   public:
@@ -28,6 +29,10 @@ class ray {
     point3 at(double t) const {
         return orig + t*dir;
     }
+
+    static constexpr float tmin = RAY_EPS;
+    mutable float tmax = std::numeric_limits<float>::max();
+
 
   private:
     point3 orig;

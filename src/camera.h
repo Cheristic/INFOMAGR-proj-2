@@ -13,6 +13,8 @@
 
 #include "hittable.h"
 #include "material.h"
+#include "light.h"
+#include "photon_mapping/kdtree.h"
 #include <fstream>
 
 
@@ -33,7 +35,7 @@ class camera {
     double defocus_angle = 0;  // Variation angle of rays through each pixel
     double focus_dist = 10;    // Distance from camera lookfrom point to plane of perfect focus
 
-    void render(const hittable& world) {
+    void render(const hittable& world, PhotonMap map) {
         initialize();
         std::ofstream ofs("image.ppm");
 
@@ -45,7 +47,8 @@ class camera {
                 color pixel_color(0,0,0);
                 for (int sample = 0; sample < samples_per_pixel; sample++) {
                     ray r = get_ray(i, j);
-                    pixel_color += ray_color(r, max_depth, world);
+                    //pixel_color += ray_color(r, max_depth, world);
+                    pixel_color += map.integrate();
                 }
                 write_color(ofs, pixel_samples_scale * pixel_color);
             }
@@ -146,9 +149,9 @@ class camera {
 
         ray scattered;
         color attenuation;
-        color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p);
+        color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p); // returns back color if material is light, else black
 
-        if (!rec.mat->scatter(r, rec, attenuation, scattered))
+        if (!rec.mat->scatter(r, rec, attenuation, scattered)) // get diffuse(?) from material if it has it (light does not, end recursion)
             return color_from_emission;
 
         color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);

@@ -13,7 +13,7 @@
 
 #include "hittable.h"
 #include "texture.h"
-
+#include "vec3.h"
 
 class material {
   public:
@@ -22,20 +22,48 @@ class material {
     virtual color emitted(double u, double v, const point3& p) const {
         return color(0,0,0);
     }
-
+    virtual vec3 evaluate(const vec3& r_in, const vec3& r_out) const = 0 {}
     virtual bool scatter(
         const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
     ) const {
         return false;
     }
+    virtual std::vector<DirectionPair> scatterAll(
+        const vec3 r_in) const = 0;
+
+    // schlick approximation of fresnel reflectance
+    static float fresnel(float cosThetaI, float iorI, float iorT) {
+        const float f0 =
+            (iorI - iorT) * (iorI - iorT) / ((iorI + iorT) * (iorI + iorT));
+        const auto pow5 = [](float x) { return x * x * x * x * x; };
+        return f0 + (1.0f - f0) * pow5(std::max(1.0f - std::abs(cosThetaI), 0.0f));
+    }
+    static float cosTheta(const vec3& v) { return v[1]; }
+    static float absCosTheta(const vec3& v) { return std::abs(cosTheta(v)); }
+    inline vec3 sampleCosineHemisphere(const float u, const float v, float& pdf) {
+        const float theta =
+            0.5f * std::acos(std::clamp(1.0f - 2.0f * u, -1.0f, 1.0f));
+        const float phi = pi * 2 * v;
+        const float cosTheta = std::cos(theta);
+        pdf = (1 / pi) * cosTheta;
+        return sphericalToCartesian(theta, phi);
+    }
 };
+
 
 
 class lambertian : public material {
   public:
     lambertian(const color& albedo) : tex(make_shared<solid_color>(albedo)) {}
     lambertian(shared_ptr<texture> tex) : tex(tex) {}
+    vec3 evaluate(const vec3& r_in, const vec3& r_out) const override {
+        // when wo, wi is under the surface, return 0
+        const float cosThetaO = cosTheta(r_in);
+        const float cosThetaI = cosTheta(r_out);
+        if (cosThetaO < 0 || cosThetaI < 0) return vec3(0, 0, 0);
 
+        return rho / PI;
+    }
     bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
     const override {
         auto scatter_direction = rec.normal + random_unit_vector();
@@ -45,8 +73,11 @@ class lambertian : public material {
             scatter_direction = rec.normal;
 
         scattered = ray(rec.p, scatter_direction);
-        attenuation = tex->value(rec.u, rec.v, rec.p);
         return true;
+    }
+    std::vector<DirectionPair> scatterAll(const vec3 r_in) const override {
+        std::vector<DirectionPair> ret;
+        return ret;
     }
 
   private:
@@ -66,49 +97,38 @@ class metal : public material {
         attenuation = albedo;
         return (dot(scattered.direction(), rec.normal) > 0);
     }
+    std::vector<DirectionPair> scatterAll(const vec3 r_in) const override {
+        std::vector<DirectionPair> ret;
+
+        float iorO, iorI;
+        vec3 n;
+        if (r_in[1] > 0) {
+            iorO = 1.0f;
+            iorI = fuzz;
+            n = vec3(0, 1, 0);
+        }
+        else {
+            iorO = fuzz;
+            iorI = 1.0f;
+            n = vec3(0, -1, 0);
+        }
+
+        // fresnel reflectance
+        const float fr = fresnel(dot(r_in, n), iorO, iorI);
+
+        // reflection
+        const vec3 wr = reflect(r_in, n);
+        ret.emplace_back(wr, fr * albedo / absCosTheta(wr));
+
+        // refraction
+        //if (refract(r_in, n, iorO))
+
+        return ret;
+    }
 
   private:
     color albedo;
     double fuzz;
-};
-
-
-class dielectric : public material {
-  public:
-    dielectric(double refraction_index) : refraction_index(refraction_index) {}
-
-    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
-    const override {
-        attenuation = color(1.0, 1.0, 1.0);
-        double ri = rec.front_face ? (1.0/refraction_index) : refraction_index;
-
-        vec3 unit_direction = unit_vector(r_in.direction());
-        double cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0);
-        double sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
-
-        bool cannot_refract = ri * sin_theta > 1.0;
-        vec3 direction;
-
-        if (cannot_refract || reflectance(cos_theta, ri) > random_double())
-            direction = reflect(unit_direction, rec.normal);
-        else
-            direction = refract(unit_direction, rec.normal, ri);
-
-        scattered = ray(rec.p, direction);
-        return true;
-    }
-
-  private:
-    // Refractive index in vacuum or air, or the ratio of the material's refractive index over
-    // the refractive index of the enclosing media
-    double refraction_index;
-
-    static double reflectance(double cosine, double refraction_index) {
-        // Use Schlick's approximation for reflectance.
-        auto r0 = (1 - refraction_index) / (1 + refraction_index);
-        r0 = r0*r0;
-        return r0 + (1-r0)*std::pow((1 - cosine),5);
-    }
 };
 
 
@@ -125,22 +145,6 @@ class diffuse_light : public material {
     shared_ptr<texture> tex;
 };
 
-
-class isotropic : public material {
-  public:
-    isotropic(const color& albedo) : tex(make_shared<solid_color>(albedo)) {}
-    isotropic(shared_ptr<texture> tex) : tex(tex) {}
-
-    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
-    const override {
-        scattered = ray(rec.p, random_unit_vector());
-        attenuation = tex->value(rec.u, rec.v, rec.p);
-        return true;
-    }
-
-  private:
-    shared_ptr<texture> tex;
-};
 
 
 #endif

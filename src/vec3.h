@@ -11,7 +11,6 @@
 // along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //==============================================================================================
 
-
 class vec3 {
   public:
     double e[3];
@@ -38,6 +37,12 @@ class vec3 {
         e[0] *= t;
         e[1] *= t;
         e[2] *= t;
+        return *this;
+    }
+    vec3& operator*=(vec3 t) {
+        e[0] *= t[0];
+        e[1] *= t[1];
+        e[2] *= t[2];
         return *this;
     }
 
@@ -150,5 +155,6 @@ inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
     return r_out_perp + r_out_parallel;
 }
 
+using DirectionPair = std::pair<vec3, vec3>;
 
 #endif

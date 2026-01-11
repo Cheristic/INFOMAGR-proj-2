@@ -20,18 +20,22 @@
 #include "quad.h"
 #include "sphere.h"
 #include "texture.h"
+#include "light.h"
+#include "photon_mapping/kdtree.h"
 
 void cornell_box() {
     hittable_list world;
 
+
     auto red   = make_shared<lambertian>(color(.65, .05, .05));
     auto white = make_shared<lambertian>(color(.73, .73, .73));
     auto green = make_shared<lambertian>(color(.12, .45, .15));
-    auto light = make_shared<diffuse_light>(color(30, 30, 30));
+    auto light_mat = make_shared<diffuse_light>(color(30, 30, 30));
 
     world.add(make_shared<quad>(point3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
     world.add(make_shared<quad>(point3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
-    world.add(make_shared<quad>(point3(378, 554, 332), vec3(-200,0,0), vec3(0,0,-105), light));
+    const std::shared_ptr<light> light_quad = make_shared<light>(point3(378, 554, 332), vec3(-200, 0, 0), vec3(0, 0, -105), light_mat);
+    world.add(light_quad);
     world.add(make_shared<quad>(point3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
     world.add(make_shared<quad>(point3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
     world.add(make_shared<quad>(point3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
@@ -59,7 +63,15 @@ void cornell_box() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    PhotonMap map;
+
+    map.nPhotonsGlobal = 100000;
+    map.maxDepth = 100;
+    map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
+
+    map.build(world, light_quad);
+
+    cam.render(world, map);
 }
 
 
@@ -104,7 +116,7 @@ void cornell_smoke() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    cam.render(world, PhotonMap()); // change
 }
 
 
@@ -183,7 +195,7 @@ void final_scene(int image_width, int samples_per_pixel, int max_depth) {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    cam.render(world, PhotonMap()); // change
 }
 
 

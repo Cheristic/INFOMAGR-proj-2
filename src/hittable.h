@@ -41,7 +41,7 @@ class hittable {
   public:
     virtual ~hittable() = default;
 
-    virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
+    virtual bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const = 0;
 
     virtual aabb bounding_box() const = 0;
 };
@@ -55,7 +55,7 @@ class translate : public hittable {
         bbox = object->bounding_box() + offset;
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit)) const override {
         // Move the ray backwards by the offset
         ray offset_r(r.origin() - offset, r.direction());
 
@@ -66,13 +66,14 @@ class translate : public hittable {
         // Move the intersection point forwards by the offset
         rec.p += offset;
 
+        hit = object;
         return true;
     }
 
     aabb bounding_box() const override { return bbox; }
 
   private:
-    shared_ptr<hittable> object;
+     shared_ptr<hittable> object;
     vec3 offset;
     aabb bbox;
 };
@@ -112,7 +113,7 @@ class rotate_y : public hittable {
         bbox = aabb(min, max);
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const override {
 
         // Transform the ray from world space to object space.
 
@@ -132,7 +133,7 @@ class rotate_y : public hittable {
 
         // Determine whether an intersection exists in object space (and if so, where).
 
-        if (!object->hit(rotated_r, ray_t, rec))
+        if (!object->hit(rotated_r, ray_t, rec, nullptr))
             return false;
 
         // Transform the intersection from object space back to world space.
@@ -149,6 +150,7 @@ class rotate_y : public hittable {
             (-sin_theta * rec.normal.x()) + (cos_theta * rec.normal.z())
         );
 
+        hit = object;
         return true;
     }
 
