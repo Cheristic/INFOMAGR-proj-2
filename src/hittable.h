@@ -12,6 +12,7 @@
 //==============================================================================================
 
 #include "aabb.h"
+#include "coordinate_functions.h"
 
 
 class material;
@@ -55,12 +56,12 @@ class translate : public hittable {
         bbox = object->bounding_box() + offset;
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit)) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const override {
         // Move the ray backwards by the offset
         ray offset_r(r.origin() - offset, r.direction());
 
         // Determine whether an intersection exists along the offset ray (and if so, where)
-        if (!object->hit(offset_r, ray_t, rec))
+        if (!object->hit(offset_r, ray_t, rec, nullptr))
             return false;
 
         // Move the intersection point forwards by the offset
@@ -73,7 +74,7 @@ class translate : public hittable {
     aabb bounding_box() const override { return bbox; }
 
   private:
-     shared_ptr<hittable> object;
+    shared_ptr<hittable> object;
     vec3 offset;
     aabb bbox;
 };

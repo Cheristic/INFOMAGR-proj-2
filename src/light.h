@@ -27,7 +27,7 @@ public:
         rec.v = random_double(0, 1);
         rec.mat = mat;
         rec.p = Q + u * rec.u + v * rec.v;
-        rec.normal;
+        rec.normal = normal;
 
         // pdf = 1 / surface area
         pdf = 1.0 / cross(u, v).length();

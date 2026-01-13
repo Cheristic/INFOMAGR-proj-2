@@ -48,7 +48,7 @@ class camera {
                 for (int sample = 0; sample < samples_per_pixel; sample++) {
                     ray r = get_ray(i, j);
                     //pixel_color += ray_color(r, max_depth, world);
-                    pixel_color += map.integrate();
+                    pixel_color += map.integrate(r, world, 0);
                 }
                 write_color(ofs, pixel_samples_scale * pixel_color);
             }
@@ -144,7 +144,7 @@ class camera {
         hit_record rec;
 
         // If the ray hits nothing, return the background color.
-        if (!world.hit(r, interval(0.001, infinity), rec))
+        if (!world.hit(r, interval(0.001, infinity), rec, nullptr))
             return background;
 
         ray scattered;

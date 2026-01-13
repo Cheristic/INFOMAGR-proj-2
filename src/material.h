@@ -40,14 +40,8 @@ class material {
     }
     static float cosTheta(const vec3& v) { return v[1]; }
     static float absCosTheta(const vec3& v) { return std::abs(cosTheta(v)); }
-    inline vec3 sampleCosineHemisphere(const float u, const float v, float& pdf) {
-        const float theta =
-            0.5f * std::acos(std::clamp(1.0f - 2.0f * u, -1.0f, 1.0f));
-        const float phi = pi * 2 * v;
-        const float cosTheta = std::cos(theta);
-        pdf = (1 / pi) * cosTheta;
-        return sphericalToCartesian(theta, phi);
-    }
+
+    virtual std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const = 0 {}
 };
 
 
@@ -56,14 +50,16 @@ class lambertian : public material {
   public:
     lambertian(const color& albedo) : tex(make_shared<solid_color>(albedo)) {}
     lambertian(shared_ptr<texture> tex) : tex(tex) {}
+
     vec3 evaluate(const vec3& r_in, const vec3& r_out) const override {
         // when wo, wi is under the surface, return 0
         const float cosThetaO = cosTheta(r_in);
         const float cosThetaI = cosTheta(r_out);
         if (cosThetaO < 0 || cosThetaI < 0) return vec3(0, 0, 0);
 
-        return rho / PI;
+        return tex->value(0, 0, vec3(0, 0, 0)) / pi;
     }
+
     bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
     const override {
         auto scatter_direction = rec.normal + random_unit_vector();
@@ -80,6 +76,12 @@ class lambertian : public material {
         return ret;
     }
 
+    std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override
+    {
+        std::vector<DirectionPair> ret;
+        return ret;
+    }
+
   private:
     shared_ptr<texture> tex;
 };
@@ -89,6 +91,10 @@ class metal : public material {
   public:
     metal(const color& albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
+    vec3 evaluate(const vec3& r_in, const vec3& r_out) const override {
+        return vec3(0, 0, 0);
+    }
+
     bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
     const override {
         vec3 reflected = reflect(r_in.direction(), rec.normal);
@@ -97,6 +103,7 @@ class metal : public material {
         attenuation = albedo;
         return (dot(scattered.direction(), rec.normal) > 0);
     }
+
     std::vector<DirectionPair> scatterAll(const vec3 r_in) const override {
         std::vector<DirectionPair> ret;
 
@@ -124,6 +131,13 @@ class metal : public material {
         //if (refract(r_in, n, iorO))
 
         return ret;
+    }
+
+    std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override
+    {
+        std::vector<DirectionPair> ret;
+        const vec3 wi = reflect(w0, vec3(0, 1, 0));
+        ret.emplace_back(wi, albedo / absCosTheta(wi));
     }
 
   private:

@@ -25,7 +25,7 @@ private:
 	{
 		if (nPoints <= 0) return;
 
-		const int axis = 0;// depth % 3;
+		const int axis = depth % 3;
 
 		std::sort(idx, idx + nPoints, [&](const int idx1, const int idx2) {return photons[idx1].pos[axis] < photons[idx2].pos[axis]; });
 

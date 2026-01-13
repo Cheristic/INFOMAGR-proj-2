@@ -10,6 +10,9 @@
 #include "light.h"
 #include "material.h"
 #include <cstdlib>
+#include <cmath>
+#include <queue>
+#include <fstream>
 
 class Photon {
 public:
@@ -21,7 +24,8 @@ public:
 
 class KDTree {
 private:
-	std::vector<Photon> photons;
+	int numPhotons;
+
 	struct KDNode {
 		char axis; // x=0, y=1, z=2
 		int idx; // index of median point
@@ -30,22 +34,127 @@ private:
 
 		KDNode() : axis(-1), idx(-1), leftChildIdx(-1), rightChildIdx(-1) {}
 	};
-public:
-	void buildTree(const std::vector<Photon> photons, int nPoints) {
-		this->photons = photons;
-		std::vector<int> indices(nPoints);
-		// replacing std::iota
-		int value = 0;
-		for (auto first = indices.begin(); first != indices.end(); ++first, ++value)
-			*first = value;
-		// build tree recursively
 
+	void BuildNode(int* idx, int nPoints, int depth)
+	{
+		if (nPoints <= 0) return;
+
+		const int axis = depth % 3;
+
+		std::sort(idx, idx + nPoints, [&](const int idx1, const int idx2) {return photons[idx1].pos[axis] < photons[idx2].pos[axis]; });
+
+		const int mid = (nPoints - 1) / 2;
+
+		const int parentIdx = nodes.size();
+		KDNode node;
+		node.axis = axis;
+		node.idx = idx[mid];
+		nodes.push_back(node);
+
+		const int leftChildIdx = nodes.size();
+		BuildNode(idx, mid, depth + 1);
+
+		if (leftChildIdx == nodes.size())
+		{
+			nodes[parentIdx].leftChildIdx = -1;
+		}
+		else
+		{
+			nodes[parentIdx].leftChildIdx = leftChildIdx;
+		}
+
+		const int rightChildIdx = nodes.size();
+		BuildNode(idx + mid + 1, nPoints - mid - 1, depth + 1);
+
+		if (rightChildIdx == nodes.size())
+		{
+			nodes[parentIdx].leftChildIdx = -1;
+		}
+		else
+		{
+			nodes[parentIdx].rightChildIdx = rightChildIdx;
+		}
 	}
 
-	std::vector<int> queryKNearestPhotons(const vec3& p, int k,
-		float& max_dist2) const {
-		std::vector<int> a;
-		return a;
+	using KNNQueue = std::priority_queue<std::pair<float, int>>;
+	void SearchKNearestNode(int nodeIdx, const point3& queryPoint, int k, KNNQueue& queue) const
+	{
+		if (nodeIdx == -1 || nodeIdx >= nodes.size()) return;
+
+		const KDNode& node = nodes[nodeIdx];
+
+		const Photon& median = photons[node.idx];
+
+		const float dist2 = (queryPoint - median.pos).length_squared();
+		queue.emplace(dist2, node.idx);
+
+		if (queue.size() > k)
+		{
+			queue.pop();
+		}
+
+		const bool isLower = queryPoint[node.axis] < median.pos[node.axis];
+		if (isLower)
+		{
+			SearchKNearestNode(node.leftChildIdx, queryPoint, k, queue);
+		}
+		else
+		{
+			SearchKNearestNode(node.rightChildIdx, queryPoint, k, queue);
+		}
+
+		const float distToSiblings = median.pos[node.axis] - queryPoint[node.axis];
+		if (queue.top().first > distToSiblings * distToSiblings)
+		{
+			if (isLower)
+			{
+				SearchKNearestNode(node.rightChildIdx, queryPoint, k, queue);
+			}
+			else
+			{
+				SearchKNearestNode(node.leftChildIdx, queryPoint, k, queue);
+			}
+		}
+	}
+
+public:
+	KDTree() {}
+	std::vector<KDNode> nodes;
+	std::vector<Photon> photons;
+
+	void SetPhotons(std::vector<Photon> photonArray, int nPhotons)
+	{
+		this->photons = photonArray;
+		this->numPhotons = nPhotons;
+	}
+
+	void MakeTree()
+	{
+		std::vector<int> idx(numPhotons);
+		// replacing std::iota
+		int value = 0;
+		for (auto first = idx.begin(); first != idx.end(); ++first, ++value)
+			*first = value;
+
+		BuildNode(idx.data(), numPhotons, 0);
+	}
+
+	std::vector<int> SearchKNearest(const point3 queryPoint, int k, float& maxDist2) const
+	{
+		KNNQueue queue;
+		SearchKNearestNode(0, queryPoint, k, queue);
+
+		std::vector<int> ret(queue.size());
+		maxDist2 = 0;
+		for (int i = 0; i < ret.size(); ++i)
+		{
+			const auto& p = queue.top();
+			ret[i] = p.second;
+			maxDist2 = std::max(maxDist2, p.first);
+			queue.pop();
+		}
+
+		return ret;
 	}
 
 	const Photon& getIthPhoton(int i) const {
@@ -134,7 +243,8 @@ public:
 			}
 		}
 
-		globalMap.buildTree(photons, photons.size());
+		globalMap.SetPhotons(photons, photons.size());
+		globalMap.MakeTree();
 
 		photons.clear();
 
@@ -147,16 +257,11 @@ public:
 				hit_record hit;
 				if (world.hit(r, interval(0.001, infinity), hit, nullptr)) {
 					// if is diffuse and previous was not specular
-					if (!prev_specular && dynamic_cast<lambertian*>(hit.mat.get()) != nullptr) {
+					if (dynamic_cast<lambertian*>(hit.mat.get()) != nullptr) {
+						if (prev_specular) photons.emplace_back(hit.p, throughput, -r.direction());
 						break;
 					}
-
-					// add photon when hitting diffuse surface after a specular
-					if (prev_specular && dynamic_cast<lambertian*>(hit.mat.get()) != nullptr) {
-						photons.emplace_back(hit.p, throughput, -r.direction());
-						break;
-					}
-
+					
 					prev_specular = dynamic_cast<metal*>(hit.mat.get()) != nullptr;
 
 					if (k > 0) {
@@ -179,7 +284,8 @@ public:
 			}
 		}
 
-		causticsMap.buildTree(photons, photons.size());
+		causticsMap.SetPhotons(photons, photons.size());
+		causticsMap.MakeTree();
 	}
 
 	color integrate(ray r, const hittable& world, int depth) const {
@@ -221,15 +327,52 @@ public:
 			}
 			else {
 				// sample all directions
-				const std::vector<DirectionPair> dir_pairs = hit.mat->scatter
+				const std::vector<DirectionPair> dir_pairs = sampleAllBxDF(-r.direction(), hit);
+
+				// Recursively raytrace
+				vec3 L0;
+				for (const auto& dp : dir_pairs)
+				{
+					const vec3 dir = dp.first;
+					const vec3 f = dp.second;
+
+					const ray next_ray(hit.p, dir);
+					const vec3 throughput = f * std::abs(dot(dir, hit.normal));
+
+					L0 += throughput * integrate(next_ray, world, depth + 1);
+				}
+				return L0;
 			}
 		}
+		else {
+			std::clog << "\r[PhotonMap] invalid material type " << std::flush;
+			return vec3(0, 0, 0);
+		}
+
 		return color(0, 0, 0);
+	}
+
+	std::vector<DirectionPair> sampleAllBxDF(const vec3& w0, const hit_record& rec) const
+	{
+		DirectionPair tangentVecs = getTangentVectors(rec.normal);
+		// Convert from world to local coords
+		const vec3& w0Local = worldToLocal(w0, tangentVecs.first, rec.normal, tangentVecs.second);
+
+		// Sample all directions in the tangent space
+		std::vector<DirectionPair> dirPairs = rec.mat->sampleAllDirections(w0Local);
+
+		// Convert from local to world coords
+		for (auto& pair : dirPairs)
+		{
+			pair.first = localToWorld(pair.first, tangentVecs.first, rec.normal, tangentVecs.second);
+		}
+
+		return dirPairs;
 	}
 
 	color computeRadianceWithPhotonMap(ray r, hit_record hit) const {
 		float max_dist2;
-		const std::vector<int> photon_indices = globalMap.queryKNearestPhotons(hit.p, nEstimationGlobal, max_dist2);
+		const std::vector<int> photon_indices = globalMap.SearchKNearest(hit.p, nEstimationGlobal, max_dist2);
 
 		vec3 Lo;
 		for (const int photon_idx : photon_indices) {
@@ -253,27 +396,100 @@ public:
 		float light_pos_pdf;
 		const hit_record light_surf = mainLight->samplePoint(light_pos_pdf);
 
+		// Convert positional pdf to directional pdf
 		const vec3 wi = unit_vector(light_surf.p - hit.p);
 		const float r = (light_surf.p - hit.p).length();
 		const float pdf_dir = light_pos_pdf * r * r / std::abs(dot(-wi, light_surf.normal));
 
+		// Make shadow ray
 		ray ray_shadow(hit.p, wi);
 		ray_shadow.tmax = r - RAY_EPS;
 
+		// Trace ray to main light
 		hit_record info_shadow;
 		if (world.hit(ray_shadow, interval(0.001, infinity), info_shadow, nullptr)) {
 			const vec3 Le = mainLight.get()->Le();
-			// sample direction by BxDF
-			ray scattered;
-			color attenuation;
-			hit.mat->scatter(r, hit, attenuation, scattered);
+
+			vec3 localDir, localwi;
+			DirectionPair tangentVecs = getTangentVectors(hit);
+			localDir = worldToLocal(r_in.direction(), tangentVecs.first, hit.normal, tangentVecs.second);
+			localwi = worldToLocal(wi, tangentVecs.first, hit.normal, tangentVecs.second);
+			const vec3 f = hit.mat->evaluate(localDir, localwi);
+			const float cos = std::abs(dot(wi, hit.normal));
+			Ld = f * cos * Le / pdf_dir;
 		}
-	}
-	color computeCausticsWithPhotonMap(vec3 dir, hit_record hit) const {
 
+		return Ld;
 	}
+	color computeCausticsWithPhotonMap(vec3 dir, hit_record hit) const 
+	{
+		// Get nearby photons
+		float max_dist2;
+		const std::vector<int> photonIdx = causticsMap.SearchKNearest(hit.p, nEstimationGlobal, max_dist2);
+
+		vec3 Lo;
+		for (const int idx : photonIdx)
+		{
+			const Photon& photon = causticsMap.getIthPhoton(idx);
+			vec3 localDir, localwi;
+			DirectionPair tangentVecs = getTangentVectors(hit);
+			localDir = worldToLocal(dir, tangentVecs.first, hit.normal, tangentVecs.second);
+			localwi = worldToLocal(photon.incident, tangentVecs.first, hit.normal, tangentVecs.second);
+			const vec3 f = hit.mat->evaluate(localDir, localwi);
+			Lo += f * photon.throughput;
+		}
+		if (photonIdx.size() > 0)
+		{
+			Lo /= (nPhotonsCaustic * pi * max_dist2);
+		}
+
+		return Lo;
+	}
+
+	color computeIndirectIlluminationRecursive(const hittable& world, const vec3& dir, hit_record hit, int depth) const
+	{
+		if (depth >= maxDepth) return vec3(0, 0, 0);
+		
+		vec3 Li;
+
+		// sample direction by BxDF
+		ray scattered;
+		color attenuation;
+		ray r;
+		hit.mat->scatter(r, hit, attenuation, scattered);
+		const float cos = std::abs(dot(hit.normal, r.direction()));
+
+		// Trace final gathering ray
+		ray rayFinalGathering(hit.p, r.direction());
+		hit_record hitFinalGathering;
+		if (world.hit(rayFinalGathering, interval(0.001, infinity), hitFinalGathering, nullptr))
+		{
+			// if hit lambertian, compute radiance with photon map
+			if (dynamic_cast<lambertian*>(hit.mat.get()) != nullptr)
+			{
+				// Compute lambertian pdf
+				// Same process as in sampleCosineHemisphere
+				float pdf;
+				vec3 uv = vec3::random();
+				sampleCosineHemisphere(uv[0], uv[1], pdf);
+
+				Li += r.direction() * cos * computeRadianceWithPhotonMap(
+					ray(rayFinalGathering.origin(), -rayFinalGathering.direction()), 
+					hitFinalGathering) / pdf;
+			}
+			// If hit specular (metal), recursively call function
+			else if (dynamic_cast<metal*>(hit.mat.get()) != nullptr)
+			{
+				Li += r.direction() * cos * computeIndirectIlluminationRecursive(
+					world, -rayFinalGathering.direction(), hitFinalGathering, depth + 1);
+			}
+		}
+
+		return Li;
+	}
+
 	color computeIndirectIllumination(const hittable& world, vec3 dir, hit_record hit) const {
-
+		return computeIndirectIlluminationRecursive(world, dir, hit, 0);
 	}
 };
 
