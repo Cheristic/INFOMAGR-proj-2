@@ -45,18 +45,11 @@ public:
         pdf = cosTheta / pi;
 
         // spherical to cartesian
-        vec3 cart = vec3(std::cos(phi) * std::sin(theta), std::cos(theta),
-            std::sin(phi) * std::sin(theta));
+        vec3 cart = sphericalToCartesian(theta, phi);
 
         // orthonormal basis
-        vec3 b1;
-        if (std::abs(normal[1]) < 0.9f) {
-            b1 = unit_vector(cross(normal, vec3(0, 1, 0)));
-        }
-        else {
-            b1 = unit_vector(cross(normal, vec3(0, 0, -1)));
-        }
-        vec3 b2 = unit_vector(cross(b1, normal));
+        vec3 b1, b2;
+        orthonormalBasis(normal, b1, b2);
 
         // transform from local to world coords
         vec3 ret;

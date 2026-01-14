@@ -16,7 +16,9 @@
 
 class Photon {
 public:
-	vec3 pos;			// position
+	Photon(point3 pos, color throughput, vec3 incident) : pos(pos), throughput(throughput), incident(incident) {}
+
+	point3 pos;			// position
 	color throughput;	// power packaed as 4 chars
 	vec3 incident;		// compresed incident direction
 	short flag;			// flag used in kdtree sorting + look-up
@@ -50,6 +52,8 @@ private:
 		node.axis = axis;
 		node.idx = idx[mid];
 		nodes.push_back(node);
+
+		photons[idx[mid]].flag = axis;
 
 		const int leftChildIdx = nodes.size();
 		BuildNode(idx, mid, depth + 1);
@@ -169,7 +173,7 @@ private:
 	KDTree causticsMap;
 	shared_ptr<light> mainLight;
 
-	ray sampleRayFromLight(const shared_ptr<light> light, vec3 throughput)
+	ray sampleRayFromLight(const shared_ptr<light> light, vec3& throughput)
 	{
 		// sample point on light
 		float light_pos_pdf;
@@ -234,12 +238,14 @@ public:
 				// sample direction by BxDF
 				ray scattered;
 				color attenuation;
-				hit.mat->scatter(r, hit, attenuation, scattered);
+				if (hit.mat != nullptr)
+				{
+					hit.mat->scatter(r, hit, attenuation, scattered);
 
-				throughput *= attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
+					throughput *= attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
 
-				r = ray(hit.p, scattered.direction());
-
+					r = ray(hit.p, scattered.direction());
+				}
 			}
 		}
 
@@ -295,7 +301,7 @@ public:
 		shared_ptr<hittable> obj;
 		// If the ray hits nothing, return the background color.
 		if (!world.hit(r, interval(0.001, infinity), hit, obj))
-			return color(0,0,0);
+			return color(0.8,0.8,0.8);
 
 		if (dynamic_cast<diffuse_light*>(hit.mat.get()) != nullptr) {
 			hittable* l = obj.get();
@@ -345,8 +351,8 @@ public:
 			}
 		}
 		else {
-			std::clog << "\r[PhotonMap] invalid material type " << std::flush;
-			return vec3(0, 0, 0);
+			std::clog << "\r[PhotonMap] invalid material type ";
+			return color(1, 0, 0);
 		}
 
 		return color(0, 0, 0);
@@ -411,7 +417,7 @@ public:
 			const vec3 Le = mainLight.get()->Le();
 
 			vec3 localDir, localwi;
-			DirectionPair tangentVecs = getTangentVectors(hit);
+			DirectionPair tangentVecs = getTangentVectors(hit.normal);
 			localDir = worldToLocal(r_in.direction(), tangentVecs.first, hit.normal, tangentVecs.second);
 			localwi = worldToLocal(wi, tangentVecs.first, hit.normal, tangentVecs.second);
 			const vec3 f = hit.mat->evaluate(localDir, localwi);
@@ -432,7 +438,7 @@ public:
 		{
 			const Photon& photon = causticsMap.getIthPhoton(idx);
 			vec3 localDir, localwi;
-			DirectionPair tangentVecs = getTangentVectors(hit);
+			DirectionPair tangentVecs = getTangentVectors(hit.normal);
 			localDir = worldToLocal(dir, tangentVecs.first, hit.normal, tangentVecs.second);
 			localwi = worldToLocal(photon.incident, tangentVecs.first, hit.normal, tangentVecs.second);
 			const vec3 f = hit.mat->evaluate(localDir, localwi);

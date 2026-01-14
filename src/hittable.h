@@ -17,7 +17,6 @@
 
 class material;
 
-
 class hit_record {
   public:
     point3 p;

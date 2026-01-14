@@ -25,13 +25,11 @@ set ( SOURCE_NEXT_WEEK
   src/bvh.h
   src/camera.h
   src/color.h
-  src/constant_medium.h
   src/hittable.h
   src/hittable_list.h
   src/interval.h
   src/light.h
   src/material.h
-  src/perlin.h
   src/quad.h
   src/ray.h
   src/rtw_stb_image.h

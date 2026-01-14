@@ -34,10 +34,10 @@ inline void orthonormalBasis(const vec3& n, vec3& t, vec3& b) {
 	b = unit_vector(cross(t, n));
 }
 
-inline DirectionPair getTangentVectors(const hit_record& rec)
+inline DirectionPair getTangentVectors(const vec3& normal)
 {
 	vec3 du, dv;
-	orthonormalBasis(rec.normal, du, dv);
+	orthonormalBasis(normal, du, dv);
 	return DirectionPair(du, dv);
 }
 

@@ -55,12 +55,12 @@ class bvh_node : public hittable {
         }
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const override {
         if (!bbox.hit(r, ray_t))
             return false;
 
-        bool hit_left = left->hit(r, ray_t, rec);
-        bool hit_right = right->hit(r, interval(ray_t.min, hit_left ? rec.t : ray_t.max), rec);
+        bool hit_left = left->hit(r, ray_t, rec, hit);
+        bool hit_right = right->hit(r, interval(ray_t.min, hit_left ? rec.t : ray_t.max), rec, hit);
 
         return hit_left || hit_right;
     }

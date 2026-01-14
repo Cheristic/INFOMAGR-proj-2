@@ -138,6 +138,7 @@ class metal : public material {
         std::vector<DirectionPair> ret;
         const vec3 wi = reflect(w0, vec3(0, 1, 0));
         ret.emplace_back(wi, albedo / absCosTheta(wi));
+        return ret;
     }
 
   private:
@@ -154,6 +155,17 @@ class diffuse_light : public material {
     color emitted(double u, double v, const point3& p) const override {
         return tex->value(u, v, p);
     }
+
+    vec3 evaluate(const vec3& r_in, const vec3& r_out) const override { return vec3(0, 0, 0); }
+
+    bool scatter(const ray& r_in, const hit_record& rec, 
+        color& attenuation, ray& scattered) const override {
+        return false;
+    }
+
+    std::vector<DirectionPair> scatterAll(const vec3 r_in) const override { return std::vector<DirectionPair>(); }
+
+    std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override { return std::vector<DirectionPair>(); }
 
   private:
     shared_ptr<texture> tex;
