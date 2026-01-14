@@ -55,7 +55,7 @@ class bvh_node : public hittable {
         }
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable>* hit) const override {
         if (!bbox.hit(r, ray_t))
             return false;
 

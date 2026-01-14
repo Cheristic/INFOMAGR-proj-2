@@ -31,14 +31,15 @@ class hittable_list : public hittable {
         bbox = aabb(bbox, object->bounding_box());
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable>* hit) const override {
         hit_record temp_rec;
         bool hit_anything = false;
         auto closest_so_far = ray_t.max;
 
         for (const auto& object : objects) {
             if (object->hit(r, interval(ray_t.min, closest_so_far), temp_rec, nullptr)) {
-                hit = object;
+                if (hit != nullptr) 
+                    *hit = object;
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 rec = temp_rec;

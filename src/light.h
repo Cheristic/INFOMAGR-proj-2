@@ -14,7 +14,7 @@ private:
     const vec3 le;
 public:
 
-    light(point3& Q, const vec3& u, const vec3& v, shared_ptr<material> mat) : quad(Q, u, v, mat), le(le) {}
+    light(point3& Q, const vec3& u, const vec3& v, shared_ptr<material> mat, const vec3& le) : quad(Q, u, v, mat), le(le) {}
 
     vec3 Le() {
         return le;

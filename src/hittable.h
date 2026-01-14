@@ -41,7 +41,7 @@ class hittable {
   public:
     virtual ~hittable() = default;
 
-    virtual bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const = 0;
+    virtual bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable>* hit) const = 0;
 
     virtual aabb bounding_box() const = 0;
 };
@@ -55,7 +55,7 @@ class translate : public hittable {
         bbox = object->bounding_box() + offset;
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable>* hit) const override {
         // Move the ray backwards by the offset
         ray offset_r(r.origin() - offset, r.direction());
 
@@ -66,7 +66,7 @@ class translate : public hittable {
         // Move the intersection point forwards by the offset
         rec.p += offset;
 
-        hit = object;
+        *hit = object;
         return true;
     }
 
@@ -113,7 +113,7 @@ class rotate_y : public hittable {
         bbox = aabb(min, max);
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable> hit) const override {
+    bool hit(const ray& r, interval ray_t, hit_record& rec, shared_ptr<hittable>* hit) const override {
 
         // Transform the ray from world space to object space.
 
@@ -150,7 +150,7 @@ class rotate_y : public hittable {
             (-sin_theta * rec.normal.x()) + (cos_theta * rec.normal.z())
         );
 
-        hit = object;
+        *hit = object;
         return true;
     }
 

@@ -300,8 +300,8 @@ public:
 		hit_record hit;
 		shared_ptr<hittable> obj;
 		// If the ray hits nothing, return the background color.
-		if (!world.hit(r, interval(0.001, infinity), hit, obj))
-			return color(0.8,0.8,0.8);
+		if (!world.hit(r, interval(0.001, infinity), hit, &obj))
+			return color(0, 0, 0);
 
 		if (dynamic_cast<diffuse_light*>(hit.mat.get()) != nullptr) {
 			hittable* l = obj.get();
@@ -352,7 +352,7 @@ public:
 		}
 		else {
 			std::clog << "\r[PhotonMap] invalid material type ";
-			return color(1, 0, 0);
+			return color(0, 0, 0);
 		}
 
 		return color(0, 0, 0);
