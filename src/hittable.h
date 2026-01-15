@@ -66,7 +66,7 @@ class translate : public hittable {
         // Move the intersection point forwards by the offset
         rec.p += offset;
 
-        *hit = object;
+        if (hit != nullptr) *hit = object;
         return true;
     }
 
@@ -150,7 +150,7 @@ class rotate_y : public hittable {
             (-sin_theta * rec.normal.x()) + (cos_theta * rec.normal.z())
         );
 
-        *hit = object;
+        if (hit != nullptr) *hit = object;
         return true;
     }
 

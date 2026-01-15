@@ -45,8 +45,7 @@ void cornell_box() {
     world.add(box1);
 
     world.add(make_shared<sphere>(
-        point3(120, 90, 280), 90, make_shared<metal>(color(0.8, 0.8, 0.9), .8)
-    ));
+        point3(120, 90, 280), 90, make_shared<lambertian>(color(0.8, 0.8, 0.9))));
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
@@ -64,7 +63,7 @@ void cornell_box() {
 
     PhotonMap map;
 
-    map.nPhotonsGlobal = 100000;
+    map.nPhotonsGlobal = 1000;
     map.maxDepth = 100;
     map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
 
@@ -117,7 +116,7 @@ void empty()
 }
 
 int main() {
-    switch (0)
+    switch (1)
     {
     case 1:
         cornell_box();
