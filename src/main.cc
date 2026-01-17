@@ -153,7 +153,7 @@ void visualize_photon_map() {
 
     PhotonMap map;
 
-    map.nPhotonsGlobal = 10000;
+    map.nPhotonsGlobal = 100000;
     map.maxDepth = 100;
     map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
     map.nEstimationPhotons = 1;

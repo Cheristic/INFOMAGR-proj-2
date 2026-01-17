@@ -22,12 +22,10 @@ class material {
     virtual color emitted(double u, double v, const point3& p) const {
         return color(0,0,0);
     }
-    virtual vec3 evaluate(const vec3& r_in, const vec3& r_out) const = 0 {}
-    virtual bool sampleDirection(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-    ) const {
-        return false;
-    }
+    virtual color evaluate(const vec3& r_in, const vec3& r_out) const = 0 {}
+    virtual color sampleDirection(
+        const vec3& r_in, const hit_record& rec, vec3& r_out, float& pdf
+    ) const = 0 { }
     // schlick approximation of fresnel reflectance
     static float fresnel(float cosThetaI, float iorI, float iorT) {
         const float f0 =
@@ -48,25 +46,29 @@ class lambertian : public material {
     lambertian(const color& albedo) : tex(make_shared<solid_color>(albedo)) {}
     lambertian(shared_ptr<texture> tex) : tex(tex) {}
 
-    vec3 evaluate(const vec3& r_in, const vec3& r_out) const override {
+    color evaluate(const vec3& r_in, const vec3& r_out) const override {
         // when wo, wi is under the surface, return 0
         const float cosThetaO = cosTheta(r_in);
         const float cosThetaI = cosTheta(r_out);
         if (cosThetaO < 0 || cosThetaI < 0) return vec3(0, 0, 0);
 
-        return tex->value(0, 0, vec3(0, 0, 0)) / pi;
+        return tex->value(0, 0, vec3(0, 0, 0)) / pi; // return color / pi
     }
 
-    bool sampleDirection(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+    color sampleDirection(const vec3& r_in, const hit_record& rec, vec3& r_out, float& pdf)
     const override {
-        auto scatter_direction = rec.normal + random_unit_vector();
 
-        // Catch degenerate scatter direction
-        if (scatter_direction.near_zero())
-            scatter_direction = rec.normal;
+        // orthonormal basis
+        vec3 b1, b2;
+        orthonormalBasis(rec.normal, b1, b2);
 
-        scattered = ray(rec.p, scatter_direction);
-        return true;
+        const vec3 r_in_local = worldToLocal(r_in, b1, rec.normal, b2);
+
+        vec3 r_out_local = sampleCosineHemisphere(random_double(0, 1), random_double(0, 1), pdf);
+
+        r_out = localToWorld(r_out_local, b1, rec.normal, b2);
+
+        return evaluate(r_in_local, r_out_local);
     }
 
     std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override
@@ -84,47 +86,25 @@ class metal : public material {
   public:
     metal(const color& albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
-    vec3 evaluate(const vec3& r_in, const vec3& r_out) const override {
+    color evaluate(const vec3& r_in, const vec3& r_out) const override {
         return vec3(0, 0, 0);
     }
 
-    bool sampleDirection(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+    color sampleDirection(const vec3& r_in, const hit_record& rec, vec3& r_out, float& pdf)
     const override {
-        vec3 reflected = reflect(r_in.direction(), rec.normal);
-        reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
-        scattered = ray(rec.p, reflected);
-        attenuation = albedo;
-        return (dot(scattered.direction(), rec.normal) > 0);
+        // orthonormal basis
+        vec3 b1, b2;
+        orthonormalBasis(rec.normal, b1, b2);
+
+        const vec3 r_in_local = worldToLocal(r_in, b1, rec.normal, b2);
+
+        vec3 r_out_local = reflect(r_in, vec3(0, 1, 0));
+        pdf = 1.0f;
+
+        r_out = localToWorld(r_out_local, b1, rec.normal, b2);
+
+        return albedo / absCosTheta(r_in_local);
     }
-
-    //std::vector<DirectionPair> scatterAll(const vec3 r_in) const override {
-    //    std::vector<DirectionPair> ret;
-
-    //    float iorO, iorI;
-    //    vec3 n;
-    //    if (r_in[1] > 0) {
-    //        iorO = 1.0f;
-    //        iorI = fuzz;
-    //        n = vec3(0, 1, 0);
-    //    }
-    //    else {
-    //        iorO = fuzz;
-    //        iorI = 1.0f;
-    //        n = vec3(0, -1, 0);
-    //    }
-
-    //    // fresnel reflectance
-    //    const float fr = fresnel(dot(r_in, n), iorO, iorI);
-
-    //    // reflection
-    //    const vec3 wr = reflect(r_in, n);
-    //    ret.emplace_back(wr, fr * albedo / absCosTheta(wr));
-
-    //    // refraction
-    //    //if (refract(r_in, n, iorO))
-
-    //    return ret;
-    //}
 
     std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override
     {
@@ -151,12 +131,9 @@ class diffuse_light : public material {
 
     vec3 evaluate(const vec3& r_in, const vec3& r_out) const override { return vec3(0, 0, 0); }
 
-    bool sampleDirection(const ray& r_in, const hit_record& rec, 
-        color& attenuation, ray& scattered) const override {
-        return false;
+    color sampleDirection(const vec3& r_in, const hit_record& rec, vec3& r_out, float& pdf) const override {
+        return color(0,0,0);
     }
-
-    std::vector<DirectionPair> scatterAll(const vec3 r_in) const override { return std::vector<DirectionPair>(); }
 
     std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override { return std::vector<DirectionPair>(); }
 

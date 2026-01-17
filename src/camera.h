@@ -174,25 +174,25 @@ class camera {
 
     color ray_color(const ray& r, int depth, const hittable& world) const {
         // If we've exceeded the ray bounce limit, no more light is gathered.
-        if (depth <= 0)
+        //if (depth <= 0)
             return color(0,0,0);
 
-        hit_record rec;
+        //hit_record rec;
 
-        // If the ray hits nothing, return the background color.
-        if (!world.hit(r, interval(0.001, infinity), rec, nullptr))
-            return background;
+        //// If the ray hits nothing, return the background color.
+        //if (!world.hit(r, interval(0.001, infinity), rec, nullptr))
+        //    return background;
 
-        ray scattered;
-        color attenuation;
-        color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p); // returns back color if material is light, else black
+        //ray scattered;
+        //color attenuation;
+        //color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p); // returns back color if material is light, else black
 
-        if (!rec.mat->sampleDirection(r, rec, attenuation, scattered)) // get diffuse(?) from material if it has it (light does not, end recursion)
-            return color_from_emission;
+        //if (!rec.mat->sampleDirection(r, rec, attenuation, scattered)) // get diffuse(?) from material if it has it (light does not, end recursion)
+        //    return color_from_emission;
 
-        color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
+        //color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);
 
-        return color_from_emission + color_from_scatter;
+        //return color_from_emission + color_from_scatter;
     }
 };
 

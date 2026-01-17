@@ -36,7 +36,7 @@ public:
     }
 
     // primarily used to sample points on light for photon map construction
-    vec3 sampleDirection(const hit_record& rec, float& pdf) const {
+    color sampleDirection(const hit_record& rec, float& pdf) const {
 
         const vec3 dir = sampleCosineHemisphere(random_double(0, 1), random_double(0, 1), pdf);
 

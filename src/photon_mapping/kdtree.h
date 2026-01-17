@@ -216,7 +216,7 @@ public:
 	void build(const hittable& world, const shared_ptr<light> light) {
 		mainLight = light;
 		for (int i = 0; i < nPhotonsGlobal; i++) {
-			//std::clog << "\rGlobal photons remaining: " << (nPhotonsGlobal - i) << ' ' << std::flush;
+			std::clog << "\rGlobal photons remaining: " << (nPhotonsGlobal - i) << ' ' << std::flush;
 			vec3 throughput;
 			//std::clog << "globalB_: " << (throughput) << "\n";
 			ray r = sampleRayFromLight(light, throughput);
@@ -240,13 +240,13 @@ public:
 					}
 
 					// sample direction by BxDF
-					ray scattered;
-					color attenuation;
-					hit.mat->sampleDirection(r, hit, attenuation, scattered);
+					vec3 r_out;
+					float pdf_dir;
+					vec3 col = hit.mat->sampleDirection(-r.direction(), hit, r_out, pdf_dir);
 
-					throughput *= attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
+					throughput *= col * cosTerm(-r.direction(), r_out, hit) / pdf_dir;
 
-					r = ray(hit.p, scattered.direction());
+					r = ray(hit.p, r_out);
 				}			
 				else {
 					break; // photon goes to sky
@@ -284,13 +284,13 @@ public:
 					}
 
 					// sample direction by BxDF
-					ray scattered;
-					color attenuation;
-					hit.mat->sampleDirection(r, hit, attenuation, scattered);
+					vec3 r_out;
+					float pdf_dir;
+					vec3 col = hit.mat->sampleDirection(-r.direction(), hit, r_out, pdf_dir);
 
-					throughput *= attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
+					throughput *= col * cosTerm(-r.direction(),r_out, hit) / pdf_dir;
 
-					r = ray(hit.p, scattered.direction());
+					r = ray(hit.p, r_out);
 				}
 			}
 
@@ -329,13 +329,13 @@ public:
 		else if (dynamic_cast<metal*>(hit.mat.get()) != nullptr) {
 			if (depth >= 3) {
 				// sample direction by BxDF
-				ray scattered;
-				color attenuation;
-				hit.mat->sampleDirection(r, hit, attenuation, scattered);
+				vec3 r_out;
+				float pdf_dir;
+				vec3 col = hit.mat->sampleDirection(-r.direction(), hit, r_out, pdf_dir);
 
-				const vec3 throughput = attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
+				const vec3 throughput = col * cosTerm(-r.direction(), r_out, hit) / pdf_dir;
 
-				ray next_r = ray(hit.p, scattered.direction());
+				ray next_r = ray(hit.p, r_out);
 				return throughput * integrate(next_r, world, depth + 1);
 			}
 			else {
@@ -390,11 +390,16 @@ public:
 		vec3 Lo;
 		for (const int photon_idx : photon_indices) {
 			const Photon& photon = globalMap.getIthPhoton(photon_idx);
-			ray scattered;
-			color attenuation;
-			hit.mat->sampleDirection(r, hit, attenuation, scattered);
 
-			Lo += attenuation * photon.throughput;
+			// orthonormal basis
+			vec3 b1, b2;
+			orthonormalBasis(hit.normal, b1, b2);
+
+			const vec3 r_in_local = worldToLocal(r.direction(), b1, hit.normal, b2);
+			const vec3 r_out_local = worldToLocal(photon.incident, b1, hit.normal, b2);
+			const color col = hit.mat->evaluate(r_in_local, r_out_local);
+
+			Lo += col * photon.throughput;
 		}
 
 		if (photon_indices.size() > 0) {
@@ -466,14 +471,13 @@ public:
 		vec3 Li;
 
 		// sample direction by BxDF
-		ray scattered;
-		color attenuation;
-		ray r;
-		hit.mat->sampleDirection(r, hit, attenuation, scattered);
-		const float cos = std::abs(dot(hit.normal, r.direction()));
+		vec3 dir_out;
+		float pdf_dir;
+		color col = hit.mat->sampleDirection(dir, hit, dir_out, pdf_dir);
+		const float cos = std::abs(dot(hit.normal, dir_out));
 
 		// Trace final gathering ray
-		ray rayFinalGathering(hit.p, r.direction());
+		ray rayFinalGathering(hit.p, dir_out);
 		hit_record hitFinalGathering;
 		if (world.hit(rayFinalGathering, interval(0.001, infinity), hitFinalGathering, nullptr))
 		{
@@ -486,14 +490,14 @@ public:
 				vec3 uv = vec3::random();
 				sampleCosineHemisphere(uv[0], uv[1], pdf);
 
-				Li += r.direction() * cos * computeRadianceWithPhotonMap(
+				Li += dir_out * cos * computeRadianceWithPhotonMap(
 					ray(rayFinalGathering.origin(), -rayFinalGathering.direction()), 
 					hitFinalGathering) / pdf;
 			}
 			// If hit specular (metal), recursively call function
 			else if (dynamic_cast<metal*>(hit.mat.get()) != nullptr)
 			{
-				Li += r.direction() * cos * computeIndirectIlluminationRecursive(
+				Li += dir_out * cos * computeIndirectIlluminationRecursive(
 					world, -rayFinalGathering.direction(), hitFinalGathering, depth + 1);
 			}
 		}
