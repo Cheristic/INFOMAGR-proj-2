@@ -63,9 +63,11 @@ void cornell_box() {
 
     PhotonMap map;
 
-    map.nPhotonsGlobal = 1000;
+    map.nPhotonsGlobal = 1000; // should be 100000
     map.maxDepth = 100;
     map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
+    map.nEstimationPhotons = 100;
+    map.finalGatheringDepth = 4;
 
     map.build(world, light_quad);
 
@@ -109,15 +111,69 @@ void empty()
     map.nPhotonsGlobal = 1000;
     map.maxDepth = 100;
     map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
+    map.nEstimationPhotons = 1;
+    map.finalGatheringDepth = 0;
 
     map.build(world, light_quad);
 
     cam.render(world, map);
 }
 
+void visualize_photon_map() {
+    hittable_list world;
+
+
+    auto red = make_shared<lambertian>(color(.65, .05, .05));
+    auto white = make_shared<lambertian>(color(.73, .73, .73));
+    auto green = make_shared<lambertian>(color(.12, .45, .15));
+    auto light_mat = make_shared<diffuse_light>(color(30, 30, 30));
+
+    world.add(make_shared<quad>(point3(555, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), green));
+    world.add(make_shared<quad>(point3(0, 0, 0), vec3(0, 555, 0), vec3(0, 0, 555), red));
+    const std::shared_ptr<light> light_quad = make_shared<light>(point3(378, 554, 332), vec3(-200, 0, 0), vec3(0, 0, -105), light_mat, vec3(1, 1, 1));
+    world.add(light_quad);
+    world.add(make_shared<quad>(point3(0, 0, 0), vec3(555, 0, 0), vec3(0, 0, 555), white));
+    world.add(make_shared<quad>(point3(555, 555, 555), vec3(-555, 0, 0), vec3(0, 0, -555), white));
+    world.add(make_shared<quad>(point3(0, 0, 555), vec3(555, 0, 0), vec3(0, 555, 0), white));
+
+    camera cam;
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 600;
+    cam.samples_per_pixel = 1;
+    cam.max_depth = 100;
+    cam.background = color(0, 0, 0);
+
+    cam.vfov = 40;
+    cam.lookfrom = point3(278, 278, -800);
+    cam.lookat = point3(278, 278, 0);
+    cam.vup = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+
+    PhotonMap map;
+
+    map.nPhotonsGlobal = 10000;
+    map.maxDepth = 100;
+    map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
+    map.nEstimationPhotons = 1;
+    map.finalGatheringDepth = 0;
+
+    //std::clog << "beginning build";
+    const clock_t begin_time = clock();
+    // do something
+
+    map.build(world, light_quad);
+    //std::clog << "finished build in " << float(clock() - begin_time) / CLOCKS_PER_SEC;
+
+    cam.render_photons(world, map);
+}
 int main() {
-    switch (1)
+    switch (2)
     {
+    case 2:
+        visualize_photon_map();
+        break;
     case 1:
         cornell_box();
         break;

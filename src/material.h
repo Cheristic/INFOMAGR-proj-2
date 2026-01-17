@@ -23,14 +23,11 @@ class material {
         return color(0,0,0);
     }
     virtual vec3 evaluate(const vec3& r_in, const vec3& r_out) const = 0 {}
-    virtual bool scatter(
+    virtual bool sampleDirection(
         const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
     ) const {
         return false;
     }
-    virtual std::vector<DirectionPair> scatterAll(
-        const vec3 r_in) const = 0;
-
     // schlick approximation of fresnel reflectance
     static float fresnel(float cosThetaI, float iorI, float iorT) {
         const float f0 =
@@ -60,7 +57,7 @@ class lambertian : public material {
         return tex->value(0, 0, vec3(0, 0, 0)) / pi;
     }
 
-    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+    bool sampleDirection(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
     const override {
         auto scatter_direction = rec.normal + random_unit_vector();
 
@@ -70,10 +67,6 @@ class lambertian : public material {
 
         scattered = ray(rec.p, scatter_direction);
         return true;
-    }
-    std::vector<DirectionPair> scatterAll(const vec3 r_in) const override {
-        std::vector<DirectionPair> ret;
-        return ret;
     }
 
     std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override
@@ -95,7 +88,7 @@ class metal : public material {
         return vec3(0, 0, 0);
     }
 
-    bool scatter(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
+    bool sampleDirection(const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered)
     const override {
         vec3 reflected = reflect(r_in.direction(), rec.normal);
         reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
@@ -104,34 +97,34 @@ class metal : public material {
         return (dot(scattered.direction(), rec.normal) > 0);
     }
 
-    std::vector<DirectionPair> scatterAll(const vec3 r_in) const override {
-        std::vector<DirectionPair> ret;
+    //std::vector<DirectionPair> scatterAll(const vec3 r_in) const override {
+    //    std::vector<DirectionPair> ret;
 
-        float iorO, iorI;
-        vec3 n;
-        if (r_in[1] > 0) {
-            iorO = 1.0f;
-            iorI = fuzz;
-            n = vec3(0, 1, 0);
-        }
-        else {
-            iorO = fuzz;
-            iorI = 1.0f;
-            n = vec3(0, -1, 0);
-        }
+    //    float iorO, iorI;
+    //    vec3 n;
+    //    if (r_in[1] > 0) {
+    //        iorO = 1.0f;
+    //        iorI = fuzz;
+    //        n = vec3(0, 1, 0);
+    //    }
+    //    else {
+    //        iorO = fuzz;
+    //        iorI = 1.0f;
+    //        n = vec3(0, -1, 0);
+    //    }
 
-        // fresnel reflectance
-        const float fr = fresnel(dot(r_in, n), iorO, iorI);
+    //    // fresnel reflectance
+    //    const float fr = fresnel(dot(r_in, n), iorO, iorI);
 
-        // reflection
-        const vec3 wr = reflect(r_in, n);
-        ret.emplace_back(wr, fr * albedo / absCosTheta(wr));
+    //    // reflection
+    //    const vec3 wr = reflect(r_in, n);
+    //    ret.emplace_back(wr, fr * albedo / absCosTheta(wr));
 
-        // refraction
-        //if (refract(r_in, n, iorO))
+    //    // refraction
+    //    //if (refract(r_in, n, iorO))
 
-        return ret;
-    }
+    //    return ret;
+    //}
 
     std::vector<DirectionPair> sampleAllDirections(const vec3& w0) const override
     {
@@ -158,7 +151,7 @@ class diffuse_light : public material {
 
     vec3 evaluate(const vec3& r_in, const vec3& r_out) const override { return vec3(0, 0, 0); }
 
-    bool scatter(const ray& r_in, const hit_record& rec, 
+    bool sampleDirection(const ray& r_in, const hit_record& rec, 
         color& attenuation, ray& scattered) const override {
         return false;
     }

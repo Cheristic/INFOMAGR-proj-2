@@ -12,6 +12,7 @@
 //==============================================================================================
 
 #include <utility>
+#include <iostream>
 
 class vec3 {
   public:
@@ -80,6 +81,11 @@ class vec3 {
     static vec3 random(double min, double max) {
         return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
     }
+
+    friend std::ostream& operator <<(std::ostream& os, const vec3& v) {
+        os << "vec3(" << v.e[0] << "," << v.e[1] << "," << v.e[2] << ")";
+        return os;
+    }
 };
 
 // point3 is just an alias for vec3, but useful for geometric clarity in the code.
@@ -105,7 +111,9 @@ inline vec3 operator*(double t, const vec3& v) {
 }
 
 inline vec3 operator*(const vec3& v, double t) {
-    return t * v;
+    auto w = t* v;
+    //std::clog << w;
+    return w;
 }
 
 inline vec3 operator/(const vec3& v, double t) {

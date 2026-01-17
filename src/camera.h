@@ -57,6 +57,42 @@ class camera {
         std::clog << "\rDone.                 \n";
     }
 
+    void render_photons(const hittable& world, PhotonMap map) {
+        initialize();
+        std::ofstream ofs("image.ppm");
+        const KDTree* photon_map = map.getPhotonMapPtr();
+        int count = 0;
+        ofs << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+        for (int j = 0; j < image_height; j++) {
+            //std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+            for (int i = 0; i < image_width; i++) {
+                ray r = get_ray(i, j);
+                hit_record hit;
+                shared_ptr<hittable> obj;
+                color pixel_color(0, 0, 0);
+                if (world.hit(r, interval(0.001, infinity), hit, &obj)) {
+                    float r2;
+                    const std::vector<int> photon_indices = photon_map->SearchKNearest
+                        (hit.p, 1, r2);
+                    const int photon_idx = photon_indices[0];
+
+                    // if distance to the photon is small enough, write photon's
+                    // throughput to the image
+                    if (r2 < 0.01f) {
+                        const Photon& photon = photon_map->getIthPhoton(photon_idx);
+                        pixel_color += photon.throughput;
+                        //std::clog << (photon.throughput) << "\n";
+                        count++;
+                    }
+                }
+                write_color(ofs, pixel_samples_scale * pixel_color);
+            }
+        }
+
+        std::clog << "\rDone.      " << count << "           \n";
+    }
+
   private:
     int    image_height;         // Rendered image height
     double pixel_samples_scale;  // Color scale factor for a sum of pixel samples
@@ -151,7 +187,7 @@ class camera {
         color attenuation;
         color color_from_emission = rec.mat->emitted(rec.u, rec.v, rec.p); // returns back color if material is light, else black
 
-        if (!rec.mat->scatter(r, rec, attenuation, scattered)) // get diffuse(?) from material if it has it (light does not, end recursion)
+        if (!rec.mat->sampleDirection(r, rec, attenuation, scattered)) // get diffuse(?) from material if it has it (light does not, end recursion)
             return color_from_emission;
 
         color color_from_scatter = attenuation * ray_color(scattered, depth-1, world);

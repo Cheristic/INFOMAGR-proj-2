@@ -176,17 +176,19 @@ private:
 	ray sampleRayFromLight(const shared_ptr<light> light, vec3& throughput)
 	{
 		// sample point on light
-		float light_pos_pdf;
+		float light_pos_pdf; // <-- this will always be the same value, same surface area
 		const hit_record light_surf = light->samplePoint(light_pos_pdf);
 	
 		// sample direction on light
 		float light_dir_pdf;
 		const vec3 dir = light->sampleDirection(light_surf, light_dir_pdf);
-	
 		// spawn ray
 		ray r = ray(light_surf.p, dir);
-		throughput = light->Le() / (light_pos_pdf * light_dir_pdf) * 
-			std::abs(dot(dir, light_surf.normal));
+
+		auto v = (light->Le() / (light_pos_pdf * light_dir_pdf));
+		auto v2 = std::abs(dot(dir, light_surf.normal));
+		throughput = v * v2;
+
 		return r;
 	}
 public:
@@ -194,7 +196,7 @@ public:
 	int nPhotonsCaustic;
 	int maxDepth;
 	int finalGatheringDepth;
-	int nEstimationGlobal;
+	int nEstimationPhotons;
 
 	PhotonMap() {}
 
@@ -214,37 +216,40 @@ public:
 	void build(const hittable& world, const shared_ptr<light> light) {
 		mainLight = light;
 		for (int i = 0; i < nPhotonsGlobal; i++) {
+			//std::clog << "\rGlobal photons remaining: " << (nPhotonsGlobal - i) << ' ' << std::flush;
 			vec3 throughput;
+			//std::clog << "globalB_: " << (throughput) << "\n";
 			ray r = sampleRayFromLight(light, throughput);
+			//std::clog << "global: " << (throughput) << "\n";
 
 			for (int k = 0; k < maxDepth; k++) {
 
 				hit_record hit;
+				//std::clog << "global: " << (throughput) << "\n";
 				if (world.hit(r, interval(0.001, infinity), hit, nullptr)) {
 					// if is diffuse
 					if (dynamic_cast<lambertian*>(hit.mat.get()) != nullptr) {
 						photons.emplace_back(hit.p, throughput, -r.direction());
 					}
-				}
-
-				if (k > 0) {
-					const float russian_roulette_prob = std::min(
-						std::max(throughput[0], std::max(throughput[1], throughput[2])),
+					if (k > 0) {
+						const float russian_roulette_prob = std::min(
+							std::max(throughput[0], std::max(throughput[1], throughput[2])),
 							1.0);
-					if (random_double(0, 1) >= russian_roulette_prob) { break; }
-					throughput /= russian_roulette_prob;
-				}
+						if (random_double(0, 1) >= russian_roulette_prob) { break; }
+						throughput /= russian_roulette_prob;
+					}
 
-				// sample direction by BxDF
-				ray scattered;
-				color attenuation;
-				if (hit.mat != nullptr)
-				{
-					hit.mat->scatter(r, hit, attenuation, scattered);
+					// sample direction by BxDF
+					ray scattered;
+					color attenuation;
+					hit.mat->sampleDirection(r, hit, attenuation, scattered);
 
 					throughput *= attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
 
 					r = ray(hit.p, scattered.direction());
+				}			
+				else {
+					break; // photon goes to sky
 				}
 			}
 		}
@@ -281,13 +286,15 @@ public:
 					// sample direction by BxDF
 					ray scattered;
 					color attenuation;
-					hit.mat->scatter(r, hit, attenuation, scattered);
+					hit.mat->sampleDirection(r, hit, attenuation, scattered);
 
 					throughput *= attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
 
 					r = ray(hit.p, scattered.direction());
 				}
 			}
+
+			//std::clog << "caustics: " << (throughput) << "\n";
 		}
 
 		causticsMap.SetPhotons(photons, photons.size());
@@ -324,7 +331,7 @@ public:
 				// sample direction by BxDF
 				ray scattered;
 				color attenuation;
-				hit.mat->scatter(r, hit, attenuation, scattered);
+				hit.mat->sampleDirection(r, hit, attenuation, scattered);
 
 				const vec3 throughput = attenuation * cosTerm(-r.direction(), scattered.direction(), hit);
 
@@ -378,14 +385,14 @@ public:
 
 	color computeRadianceWithPhotonMap(ray r, hit_record hit) const {
 		float max_dist2;
-		const std::vector<int> photon_indices = globalMap.SearchKNearest(hit.p, nEstimationGlobal, max_dist2);
+		const std::vector<int> photon_indices = globalMap.SearchKNearest(hit.p, nEstimationPhotons, max_dist2);
 
 		vec3 Lo;
 		for (const int photon_idx : photon_indices) {
 			const Photon& photon = globalMap.getIthPhoton(photon_idx);
 			ray scattered;
 			color attenuation;
-			hit.mat->scatter(r, hit, attenuation, scattered);
+			hit.mat->sampleDirection(r, hit, attenuation, scattered);
 
 			Lo += attenuation * photon.throughput;
 		}
@@ -431,7 +438,7 @@ public:
 	{
 		// Get nearby photons
 		float max_dist2;
-		const std::vector<int> photonIdx = causticsMap.SearchKNearest(hit.p, nEstimationGlobal, max_dist2);
+		const std::vector<int> photonIdx = causticsMap.SearchKNearest(hit.p, nEstimationPhotons, max_dist2);
 
 		vec3 Lo;
 		for (const int idx : photonIdx)
@@ -462,7 +469,7 @@ public:
 		ray scattered;
 		color attenuation;
 		ray r;
-		hit.mat->scatter(r, hit, attenuation, scattered);
+		hit.mat->sampleDirection(r, hit, attenuation, scattered);
 		const float cos = std::abs(dot(hit.normal, r.direction()));
 
 		// Trace final gathering ray
@@ -497,6 +504,8 @@ public:
 	color computeIndirectIllumination(const hittable& world, vec3 dir, hit_record hit) const {
 		return computeIndirectIlluminationRecursive(world, dir, hit, 0);
 	}
+
+	const KDTree* getPhotonMapPtr() const { return &globalMap; }
 };
 
 

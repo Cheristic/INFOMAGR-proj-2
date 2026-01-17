@@ -38,25 +38,13 @@ public:
     // primarily used to sample points on light for photon map construction
     vec3 sampleDirection(const hit_record& rec, float& pdf) const {
 
-        const float theta =
-            0.5f * std::acos(fmin(fmax(1.0f - 2.0f * rec.u, -1.0f), 1.0f));
-        const float phi = pi * 2 * rec.v;
-        const float cosTheta = std::cos(theta);
-        pdf = cosTheta / pi;
-
-        // spherical to cartesian
-        vec3 cart = sphericalToCartesian(theta, phi);
+        const vec3 dir = sampleCosineHemisphere(random_double(0, 1), random_double(0, 1), pdf);
 
         // orthonormal basis
         vec3 b1, b2;
         orthonormalBasis(normal, b1, b2);
 
-        // transform from local to world coords
-        vec3 ret;
-        for (int i = 0; i < 3; ++i) {
-            ret[i] = cart[0] * b1[i] + cart[1] * normal[i] + cart[2] * b2[i];
-        }
-        return ret;
+        return localToWorld(dir, b1, normal, b2);
     }
 };
 
