@@ -9,6 +9,7 @@
 #include "rtweekend.h"
 #include "light.h"
 #include "material.h"
+#include "filters.h"
 #include <cstdlib>
 #include <cmath>
 #include <queue>
@@ -320,9 +321,9 @@ public:
 				return computeRadianceWithPhotonMap(ray(r.origin(), - r.direction()), hit);
 			}
 			else {
-				const vec3 Ld = computeDirectIllumination(world, ray(r.origin(), -r.direction()), hit);
-				const vec3 Lc = computeCausticsWithPhotonMap(-r.direction(), hit);
-				const vec3 Li = computeIndirectIllumination(world, -r.direction(), hit);
+				const vec3 Ld = computeDirectIllumination(world, ray(r.origin(), r.direction()), hit);
+				const vec3 Lc = computeCausticsWithPhotonMap(r.direction(), hit);
+				const vec3 Li = computeIndirectIllumination(world, r.direction(), hit);
 				return (Ld + Lc + Li);
 			}
 		}
@@ -331,16 +332,16 @@ public:
 				// sample direction by BxDF
 				vec3 r_out;
 				float pdf_dir;
-				vec3 col = hit.mat->sampleDirection(-r.direction(), hit, r_out, pdf_dir);
+				vec3 col = hit.mat->sampleDirection(r.direction(), hit, r_out, pdf_dir);
 
-				const vec3 throughput = col * cosTerm(-r.direction(), r_out, hit) / pdf_dir;
+				const vec3 throughput = col * cosTerm(r.direction(), r_out, hit) / pdf_dir;
 
 				ray next_r = ray(hit.p, r_out);
 				return throughput * integrate(next_r, world, depth + 1);
 			}
 			else {
 				// sample all directions
-				const std::vector<DirectionPair> dir_pairs = sampleAllBxDF(-r.direction(), hit);
+				const std::vector<DirectionPair> dir_pairs = sampleAllBxDF(r.direction(), hit);
 
 				// Recursively raytrace
 				vec3 L0;
@@ -399,7 +400,7 @@ public:
 			const vec3 r_out_local = worldToLocal(photon.incident, b1, hit.normal, b2);
 			const color col = hit.mat->evaluate(r_in_local, r_out_local);
 
-			Lo += col * photon.throughput;
+			Lo += col * photon.throughput;// *gaussianFilter(hit.p, photon.pos, max_dist2);
 		}
 
 		if (photon_indices.size() > 0) {
@@ -454,7 +455,7 @@ public:
 			localDir = worldToLocal(dir, tangentVecs.first, hit.normal, tangentVecs.second);
 			localwi = worldToLocal(photon.incident, tangentVecs.first, hit.normal, tangentVecs.second);
 			const vec3 f = hit.mat->evaluate(localDir, localwi);
-			Lo += f * photon.throughput;
+			Lo += f * photon.throughput * gaussianFilter(hit.p, photon.pos, max_dist2);
 		}
 		if (photonIdx.size() > 0)
 		{

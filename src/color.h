@@ -33,9 +33,9 @@ void write_color(std::ostream& out, const color& pixel_color) {
     auto b = pixel_color.z();
 
     // Apply a linear to gamma transform for gamma 2
-    r = linear_to_gamma(r);
-    g = linear_to_gamma(g);
-    b = linear_to_gamma(b);
+    r = linear_to_gamma(r) + 0.1;
+    g = linear_to_gamma(g) + 0.1;
+    b = linear_to_gamma(b) + 0.1;
 
     // Translate the [0,1] component values to the byte range [0,255].
     static const interval intensity(0.000, 0.999);
