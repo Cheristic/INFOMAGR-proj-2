@@ -216,6 +216,7 @@ public:
 
 	void build(const hittable& world, const shared_ptr<light> light) {
 		mainLight = light;
+		int count = 0;
 		for (int i = 0; i < nPhotonsGlobal; i++) {
 			std::clog << "\rGlobal photons remaining: " << (nPhotonsGlobal - i) << ' ' << std::flush;
 			vec3 throughput;
@@ -248,13 +249,14 @@ public:
 					throughput *= col * cosTerm(-r.direction(), r_out, hit) / pdf_dir;
 
 					r = ray(hit.p, r_out);
+					count++;
 				}			
 				else {
 					break; // photon goes to sky
 				}
 			}
+			std::clog << "\n";
 		}
-
 		globalMap.SetPhotons(photons, photons.size());
 		globalMap.MakeTree();
 
@@ -318,12 +320,13 @@ public:
 
 		if (dynamic_cast<lambertian*>(hit.mat.get()) != nullptr) {
 			if (depth >= finalGatheringDepth) {
+				//std::clog << "1";
 				return computeRadianceWithPhotonMap(ray(r.origin(), - r.direction()), hit);
 			}
 			else {
-				const vec3 Ld = computeDirectIllumination(world, ray(r.origin(), r.direction()), hit);
-				const vec3 Lc = computeCausticsWithPhotonMap(r.direction(), hit);
-				const vec3 Li = computeIndirectIllumination(world, r.direction(), hit);
+				const vec3 Ld = computeDirectIllumination(world, ray(r.origin(), -r.direction()), hit);
+				const vec3 Lc = computeCausticsWithPhotonMap(-r.direction(), hit);
+				const vec3 Li = computeIndirectIllumination(world, -r.direction(), hit);
 				return (Ld + Lc + Li);
 			}
 		}
@@ -426,16 +429,15 @@ public:
 
 		// Trace ray to main light
 		hit_record info_shadow;
-		if (world.hit(ray_shadow, interval(0.001, infinity), info_shadow, nullptr)) {
+		if (!world.hit(ray_shadow, interval(0.001, infinity), info_shadow, nullptr)) {
 			const vec3 Le = mainLight.get()->Le();
 
-			vec3 localDir, localwi;
 			DirectionPair tangentVecs = getTangentVectors(hit.normal);
-			localDir = worldToLocal(r_in.direction(), tangentVecs.first, hit.normal, tangentVecs.second);
-			localwi = worldToLocal(wi, tangentVecs.first, hit.normal, tangentVecs.second);
-			const vec3 f = hit.mat->evaluate(localDir, localwi);
+			const vec3 r_in_local = worldToLocal(r_in.direction(), tangentVecs.first, hit.normal, tangentVecs.second);
+			const vec3 r_out_local = worldToLocal(wi, tangentVecs.first, hit.normal, tangentVecs.second);
+			const vec3 col = hit.mat->evaluate(r_in_local, r_out_local);
 			const float cos = std::abs(dot(wi, hit.normal));
-			Ld = f * cos * Le / pdf_dir;
+			Ld = col * cos * Le / pdf_dir;
 		}
 
 		return Ld;
@@ -483,22 +485,16 @@ public:
 		if (world.hit(rayFinalGathering, interval(0.001, infinity), hitFinalGathering, nullptr))
 		{
 			// if hit lambertian, compute radiance with photon map
-			if (dynamic_cast<lambertian*>(hit.mat.get()) != nullptr)
+			if (dynamic_cast<lambertian*>(hitFinalGathering.mat.get()) != nullptr)
 			{
-				// Compute lambertian pdf
-				// Same process as in sampleCosineHemisphere
-				float pdf;
-				vec3 uv = vec3::random();
-				sampleCosineHemisphere(uv[0], uv[1], pdf);
-
-				Li += dir_out * cos * computeRadianceWithPhotonMap(
+				Li += col * cos * computeRadianceWithPhotonMap(
 					ray(rayFinalGathering.origin(), -rayFinalGathering.direction()), 
-					hitFinalGathering) / pdf;
+					hitFinalGathering) / pdf_dir;
 			}
 			// If hit specular (metal), recursively call function
-			else if (dynamic_cast<metal*>(hit.mat.get()) != nullptr)
+			else if (dynamic_cast<metal*>(hitFinalGathering.mat.get()) != nullptr)
 			{
-				Li += dir_out * cos * computeIndirectIlluminationRecursive(
+				Li += col * cos * computeIndirectIlluminationRecursive(
 					world, -rayFinalGathering.direction(), hitFinalGathering, depth + 1);
 			}
 		}

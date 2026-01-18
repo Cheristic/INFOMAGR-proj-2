@@ -33,7 +33,7 @@ void cornell_box() {
 
     world.add(make_shared<quad>(point3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
     world.add(make_shared<quad>(point3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
-    const std::shared_ptr<light> light_quad = make_shared<light>(point3(378, 554, 332), vec3(-200, 0, 0), vec3(0, 0, -105), light_mat, vec3(1,1,1));
+    const std::shared_ptr<light> light_quad = make_shared<light>(point3(378, 554, 332), vec3(-200, 0, 0), vec3(0, 0, -105), light_mat, vec3(34,19,10));
     world.add(light_quad);
     world.add(make_shared<quad>(point3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
     world.add(make_shared<quad>(point3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
@@ -49,7 +49,7 @@ void cornell_box() {
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 1200;
+    cam.image_width       = 400;
     cam.samples_per_pixel = 4;
     cam.max_depth         = 100;
     cam.background        = color(0,0,0);
@@ -67,7 +67,7 @@ void cornell_box() {
     map.maxDepth = 100;
     map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
     map.nEstimationPhotons = 100;
-    map.finalGatheringDepth = 0;
+    map.finalGatheringDepth = 4;
 
     map.build(world, light_quad);
 
@@ -151,8 +151,8 @@ void empty()
     camera cam;
 
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
-    cam.samples_per_pixel = 100;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 4;
     cam.max_depth = 100;
     cam.background = color(0, 0, 0);
 
@@ -165,10 +165,10 @@ void empty()
 
     PhotonMap map;
 
-    map.nPhotonsGlobal = 1000000;
+    map.nPhotonsGlobal = 20000;
     map.maxDepth = 100;
     map.nPhotonsCaustic = map.nPhotonsGlobal * 100;
-    map.nEstimationPhotons = 1;
+    map.nEstimationPhotons = 100;
     map.finalGatheringDepth = 0;
 
     map.build(world, light_quad);
